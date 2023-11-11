@@ -1,10 +1,45 @@
 <script setup>
-import { ref } from 'vue'
-import { Plus, Fold } from '@element-plus/icons-vue'
+import { ref, watch } from 'vue'
+import {Plus, Fold, Promotion} from '@element-plus/icons-vue'
 import 'animate.css'
+import {ElMessage} from "element-plus";
 import HistoryComponent from '@/components/HistoryComponent.vue'
+import DocComponent from "@/components/DocComponent.vue";
+import MeComponent from "@/components/MeComponent.vue";
 
-const doctor = ref('庸医')
+const content = ref('')
+const send_icon = ref(false)
+const send_btn = ref(null)
+const regex = /^\s*$/
+
+/* 侦听textarea中是否有内容产生 */
+watch(content, async (new_content) => {
+  if (!regex.test(new_content)){
+    send_btn.value.style.backgroundColor = '#409eff'
+    send_icon.value = true
+  }
+  else{
+    send_btn.value.style.backgroundColor = 'transparent'
+    send_icon.value = false
+  }
+})
+
+function sendmsg(){
+  if(regex.test(content.value)){
+    ElMessage({
+      message: 'Oops, you haven\'t filled in the blanks yet.',
+      type: 'warning',
+      duration: 1800
+    })
+    content.value = ''
+  }else{
+    content.value = ''
+    send_btn.value.style.backgroundColor = 'transparent'
+    send_icon.value = false
+  }
+}
+
+const doctor = ref('神医')
 const history = ref([
   {
     title: '如何根治青春痘',
@@ -70,10 +105,17 @@ const history = ref([
 const activeId = ref(history.value[0].id)
 const currentChat = ref(history.value.find((item) => item.id === activeId.value))
 
+/* 处理当前选择的聊天样式 */
 function toggleActive(id) {
   this.activeId = id
   currentChat.value = this.history.find((item) => item.id === this.activeId)
 }
+
+/* 处理标题更改事件 */
+function TitleChange(id, new_title) {
+  history.value.find((item) => item.id === id).title = new_title
+}
+
 </script>
 
 <template>
@@ -102,6 +144,9 @@ function toggleActive(id) {
           v-for="item in history"
           :key="item.id"
           :style="{ borderColor: activeId === item.id ? '#1d93ab' : 'transparent' }"
+          :edit_id = "item.id"
+          :edit_title = "item.title"
+          @edit="TitleChange"
           @click="toggleActive(item.id)"
         >
           <template v-slot:title>{{ item.title }}</template>
@@ -110,21 +155,18 @@ function toggleActive(id) {
         </HistoryComponent>
       </div>
       <div class="left-nav footer">
-        <el-popover
-          placement="top-start"
-          title="Logging Out"
-          :width="158"
-          trigger="hover"
-          content="Click on me to cancel your login"
+        <el-tooltip
+            class="box-item"
+            effect="dark"
+            content="Logging Out"
+            placement="top-start"
         >
-          <template #reference>
             <button id="login-out">
               <el-icon size="large">
                 <Fold />
               </el-icon>
             </button>
-          </template>
-        </el-popover>
+        </el-tooltip>
         <button id="add-new-chat">
           <el-icon size="large">
             <Plus />
@@ -146,8 +188,39 @@ function toggleActive(id) {
           </el-radio-group>
         </div>
       </div>
-      <div class="right-main main"></div>
-      <div class="right-main footer">InputBox</div>
+      <div class="right-main main">
+        <DocComponent></DocComponent>
+        <MeComponent></MeComponent>
+        <DocComponent></DocComponent>
+        <MeComponent></MeComponent>
+        <DocComponent></DocComponent>
+        <MeComponent></MeComponent>
+        <DocComponent></DocComponent>
+        <MeComponent></MeComponent>
+      </div>
+      <div class="right-main footer">
+        <div class="right-main footer input">
+          <div class="right-main footer input text-area">
+            <textarea v-model="content" @keyup.enter="sendmsg" autofocus placeholder="Send a message..." rows="1"></textarea>
+            <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="Send Message"
+                placement="top"
+            >
+              <button ref="send_btn" :disabled="!send_icon" id="send-msg" @click="sendmsg">
+                <el-icon v-show="!send_icon" color="#dedee5" size=25>
+                  <Promotion />
+                </el-icon>
+                <el-icon v-show="send_icon" color="white" size=25>
+                  <Promotion />
+                </el-icon>
+              </button>
+            </el-tooltip>
+          </div>
+        </div>
+        <span id="remind" style="color: #a6a6a6">Medical T5 can make mistakes, please consult a medical professional before proceeding with the relevant treatment.</span>
+      </div>
     </div>
   </div>
 </template>
@@ -164,8 +237,6 @@ function toggleActive(id) {
   padding: 0;
   width: 100svw;
   height: 100svh;
-  border-style: dashed;
-  border-width: 1px;
   display: flex;
 
   .left-nav {
@@ -174,8 +245,6 @@ function toggleActive(id) {
     flex-basis: 0;
     flex-direction: column;
     flex-grow: 1;
-    border-style: dashed;
-    border-width: 1px;
 
     .header {
       display: flex;
@@ -184,8 +253,6 @@ function toggleActive(id) {
       justify-content: space-between;
       flex-basis: 0;
       flex-grow: 2;
-      border-style: dashed;
-      border-width: 1px;
 
       #nav-title {
         display: flex;
@@ -214,18 +281,22 @@ function toggleActive(id) {
     justify-content: flex-start;
     flex-basis: 0;
     flex-grow: 8;
-    border-style: dashed;
-    border-width: 1px;
     overflow: auto;
   }
   .main::-webkit-scrollbar {
-    width: 2px; /* 设置滚动条宽度 */
+    width: 3px; /* 设置滚动条宽度 */
   }
   .main::-webkit-scrollbar-track {
     background-color: transparent; /* 设置滚动条背景色 */
+    border-radius: 20px;
   }
   .main::-webkit-scrollbar-thumb {
     background-color: #888; /* 设置滚动条滑块颜色 */
+    border-radius: 20px;
+  }
+
+  .main::-webkit-scrollbar-thumb:active {
+    background-color: #666;
   }
 
   .footer {
@@ -235,8 +306,6 @@ function toggleActive(id) {
     justify-content: space-around;
     flex-basis: 0;
     flex-grow: 1;
-    border-style: dashed;
-    border-width: 1px;
 
     #login-out {
       display: flex;
@@ -296,8 +365,6 @@ function toggleActive(id) {
     flex-direction: column;
     flex-grow: 4;
     flex-basis: 0;
-    border-style: dashed;
-    border-width: 1px;
 
     .header {
       display: flex;
@@ -314,7 +381,7 @@ function toggleActive(id) {
         justify-content: center;
         flex-basis: 0;
         flex-grow: 4;
-        border-bottom: 1px solid #e5e5e5;
+        border-bottom: 3px solid #e5e5e5;
       }
 
       .change-button {
@@ -327,22 +394,99 @@ function toggleActive(id) {
     }
 
     .main {
-      display: flex;
-      flex-direction: row;
-      flex-basis: 0;
       flex-grow: 8;
-      border-style: dashed;
-      border-width: 1px;
+      display: grid;
+      overflow: auto;
+      align-items: center;
+      justify-content: center;
     }
 
     .footer {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-end;
       flex-basis: 0;
-      flex-grow: 1;
-      border-style: dashed;
-      border-width: 1px;
+      flex-grow: 1.3;
+      .input {
+        background-color: transparent;
+        flex-direction: row;
+        min-height: 20px;
+        max-height: 600px;
+        flex-grow: 6;
+        width: 100%;
+        align-items: flex-end;
+        justify-content: center;
+        .text-area{
+          padding-left: 18px;
+          padding-right: 18px;
+          flex-direction: row;
+          justify-content: space-around;
+          align-items: center;
+          max-width: 850px;
+          min-width: 200px;
+          margin-bottom: 4px;
+          height: 50px;
+          border-radius: 10px;
+          background-color: white;
+          transition-duration: 0.4s;
+          border: 1px solid rgba(242, 242, 242, 0.4);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+          textarea{
+            margin-right: 20px;
+            flex-basis: 0;
+            flex-grow: 20;
+            width: 95%;
+            height: auto;
+            font-family: "CustomFont", Arial, sans-serif;
+            border-color: transparent;
+            resize: none;
+            font-size: 17px;
+          }
+          textarea:focus {
+            border-color: transparent;
+            outline: none;
+          }
+          textarea::-webkit-scrollbar {
+            width: 3px; /* 设置滚动条宽度 */
+          }
+          textarea::-webkit-scrollbar-track {
+            background-color: transparent; /* 设置滚动条背景色 */
+            border-radius: 20px;
+          }
+          textarea::-webkit-scrollbar-thumb {
+            background-color: #888; /* 设置滚动条滑块颜色 */
+            border-radius: 20px;
+          }
+          textarea::-webkit-scrollbar-thumb:active {
+            background-color: #666;
+          }
+          #send-msg{
+            flex-basis: 0;
+            flex-grow: 1;
+            width: 35px;
+            height: 35px;
+            border-radius: 4px;
+            border-color: transparent;
+            background-color: transparent;
+            transition: ease-in-out 0.2s;
+          }
+          #send-msg:active{
+            background-color: #8f9eff;
+            transition: ease-in-out 0.2s;
+          }
+        }
+      }
+      #remind{
+        display: flex;
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: center;
+        flex-basis: 1px;
+        flex-grow: 1;
+        width: 100%;
+        font-size: 15px;
+      }
     }
   }
 }

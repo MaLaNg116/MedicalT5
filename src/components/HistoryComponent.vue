@@ -1,20 +1,82 @@
 <script setup>
-import { ref } from 'vue'
-import {Edit, DeleteFilled} from "@element-plus/icons-vue";
+import { ref, defineProps } from 'vue'
+import { Edit, DeleteFilled } from '@element-plus/icons-vue'
 import 'animate.css'
+import {ElMessage} from "element-plus";
 
 const edit_show = ref(false)
+const edit_data = defineProps(['edit_id', 'edit_title'])
+const edit_input = ref(false)
+const input_box = ref(null)
+const new_title = ref('')
+const emit = defineEmits(['edit'])
+const edit_warning = ref(false)
 
+/* 处理用户编辑事件的申请 */
+function handle_edit() {
+  edit_input.value = true
+  setTimeout(() => {
+    input_box.value.focus()
+  }, 0)
+}
+
+/* 处理用户更改标题后的保存事件 */
+function handle_save() {
+  if (input_box.value.value.length > 12) {
+    edit_warning.value = true
+    setTimeout(() => {
+      edit_warning.value = false
+    }, 1500)
+  } else {
+    if (edit_input.value === true) {
+      edit_input.value = false
+      new_title.value = input_box.value.value
+      /* 判断标题是否合法 */
+      if (new_title.value !== edit_data.edit_title) {
+        if (new_title.value === '') {
+          new_title.value = '新的聊天'
+        }
+        emit('edit', edit_data.edit_id, new_title.value)
+        ElMessage({
+          message: '修改成功！',
+          type: 'success',
+          duration: 1000
+        })
+      }
+    }
+  }
+}
 </script>
 
 <template>
-  <div class="history" @mouseover="()=>{edit_show = true}" @mouseleave="()=>{edit_show = false}">
-    <span class="history-title">
+  <div
+    class="history"
+    @mouseover="
+      () => {
+        edit_show = true
+      }
+    "
+    @mouseleave="
+      () => {
+        edit_show = false
+      }
+    "
+  >
+    <input
+      placeholder="新的聊天"
+      ref="input_box"
+      type="text"
+      :value="edit_data.edit_title"
+      v-show="edit_input"
+      @keyup.enter="handle_save"
+      @blur="handle_save"
+    />
+    <span v-show="!edit_input" class="history-title">
       <slot name="title"></slot>
     </span>
     <div>
       <transition name="edit">
-        <el-icon color="#939393" v-show="edit_show">
+        <el-icon color="#939393" v-show="edit_show" @click="handle_edit">
           <Edit />
         </el-icon>
       </transition>
@@ -26,9 +88,10 @@ const edit_show = ref(false)
         </el-icon>
       </transition>
     </div>
-    <span class="history-count">
+    <span v-show="!edit_warning" class="history-count">
       <slot name="count"></slot>
     </span>
+    <span id="warning-msg" v-show="edit_warning">请小于十个字符！</span>
     <span class="history-time">
       <slot name="time"></slot>
     </span>
@@ -36,7 +99,7 @@ const edit_show = ref(false)
 </template>
 
 <style scoped lang="less">
-.history{
+.history {
   display: grid;
   grid-template-columns: 5fr 3fr 1fr 1fr;
   margin-top: 7px;
@@ -49,7 +112,24 @@ const edit_show = ref(false)
   transition-duration: 0.4s;
   border: 2px solid transparent;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-  .history-title{
+
+  input {
+    width: 180px;
+    height: 20px;
+    margin-top: 4px;
+    justify-self: center;
+    align-items: center;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    grid-column-start: 1;
+    grid-column-end: 3;
+  }
+
+  input:focus {
+    outline: 1px solid #a6a6a6;
+  }
+
+  .history-title {
     margin-left: 15px;
     font-size: 16px;
     font-weight: bolder;
@@ -58,13 +138,23 @@ const edit_show = ref(false)
     grid-column-start: 1;
     grid-column-end: 3;
   }
-  .history-count{
+
+  .history-count {
     color: #a6a6a6;
     margin-left: 15px;
     font-size: 13px;
     justify-self: start;
   }
-  .history-time{
+
+  #warning-msg {
+    color: red;
+    margin-left: 15px;
+    font-size: 13px;
+    justify-self: start;
+    animation: headShake 0.6s;
+  }
+
+  .history-time {
     color: #a6a6a6;
     margin-right: 15px;
     font-size: 13px;
@@ -72,25 +162,30 @@ const edit_show = ref(false)
     grid-column-start: 2;
     grid-column-end: 5;
   }
-  .edit-enter-active{
-    animation:fadeInDown 0.4s;
+
+  .edit-enter-active {
+    animation: fadeInDown 0.4s;
   }
-  .edit-leave-active{
-    animation:fadeOutUp 0.4s;
+
+  .edit-leave-active {
+    animation: fadeOutUp 0.4s;
   }
-  .delete-enter-active{
-    animation:fadeInDown 0.4s;
+
+  .delete-enter-active {
+    animation: fadeInDown 0.4s;
   }
-  .delete-leave-active{
-    animation:fadeOutUp 0.4s;
+
+  .delete-leave-active {
+    animation: fadeOutUp 0.4s;
   }
-  .el-icon:hover{
+
+  .el-icon:hover {
     cursor: pointer;
-    color: #333333
+    color: #333333;
   }
 }
 
-.history:hover{
+.history:hover {
   transition-duration: 0.4s;
   background-color: #f3f3f3;
 }
