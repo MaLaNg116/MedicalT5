@@ -2,6 +2,7 @@
   import{ref} from "vue";
   import { ElMessage } from 'element-plus'
   import axios from "axios"
+  import {userInfo} from "@/stores/userInfo";
 
   let right_panel_active = ref(true);
   const container_from = ref(null)
@@ -10,7 +11,8 @@
   const re_username = ref('')
   const log_username = ref('')
   const log_password = ref('')
-  
+  const loading = ref(false)
+  const usersInfo = userInfo()
   
   function re_judge(){
     if(re_password.value == '' ||  re_username.value == ''){
@@ -80,6 +82,22 @@
         if (res.data.code === 1) {
           open4()
           console.log(res.data)
+          loading.value = true
+          axios.get("http://10.100.236.20:8080/sessions/"+log_username.value,log_userinfo,{
+            headers: {'Content-Type': 'application/json;charset=UTF-8', 'Accept': '*'},
+            timeout: 30000
+          }).then(res => {
+            console.log(res.data)
+            const data = res.data
+            const fetchData = () => {
+              usersInfo.fetchData(data);
+            };
+            console.log(usersInfo.$state.data)
+            fetchData()
+            loading.value = false
+          }).catch(err => {
+            console.log(err)
+          })
         }
         if (res.data.msg === '用户名错误'){
           ElMessage({
@@ -139,7 +157,7 @@
       </div>
     </div>
     <!-- 登录框-->
-    <div class="container_from container--signin">
+    <div v-loading="loading" element-loading-text="加载中..." class="container_from container--signin">
       <div action="#" class="from" id="from2">
         <h2 class="from_title">欢迎登录</h2>
         <input v-model="log_username" type="text" placeholder="User" class="input">
