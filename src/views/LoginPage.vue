@@ -183,7 +183,7 @@
   body{
     align-items: center;
     background: #e9e9e9 url("@/assets/background.png") no-repeat fixed center;
-    background-size: cover;
+    background-size: auto;
     display: grid;
     height: 100vh;
     place-items: center;
@@ -209,7 +209,10 @@
     height: var(--max-height);
     //max-width: var(--max-height);
     overflow: hidden;
-    position: relative;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: var(--max-width);
   }
 
@@ -260,7 +263,7 @@
   }
   .overlay{
     background: #e9e9e9 url("@/assets/background.png") no-repeat fixed center;
-    background-size: cover;
+    background-size: auto;
     height: 100%;
     left: -100%;
     position: relative;
