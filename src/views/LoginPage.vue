@@ -182,7 +182,7 @@
 
   body{
     align-items: center;
-    background: #e9e9e9 url("background.png") no-repeat fixed center;
+    background: #e9e9e9 url("@/assets/background.png") no-repeat fixed center;
     background-size: cover;
     display: grid;
     height: 100vh;
@@ -259,7 +259,7 @@
     transform: translateX(-100%);
   }
   .overlay{
-    background: #e9e9e9 url("background.png") no-repeat fixed center;
+    background: #e9e9e9 url("@/assets/background.png") no-repeat fixed center;
     background-size: cover;
     height: 100%;
     left: -100%;
