@@ -5,11 +5,12 @@ import 'animate.css'
 import {ElMessage} from "element-plus";
 
 const edit_show = ref(false)
-const edit_data = defineProps(['edit_id', 'edit_title'])
+const isDelete = ref(false)
+const data = defineProps(['id', 'title', 'count', 'time'])
 const edit_input = ref(false)
 const input_box = ref(null)
 const new_title = ref('')
-const emit = defineEmits(['edit'])
+const emit = defineEmits(['edit', 'delete', 'active'])
 const edit_warning = ref(false)
 
 /* 处理用户编辑事件的申请 */
@@ -32,20 +33,29 @@ function handle_save() {
       edit_input.value = false
       new_title.value = input_box.value.value
       /* 判断标题是否合法 */
-      if (new_title.value !== edit_data.edit_title) {
+      if (new_title.value !== data.title) {
         if (new_title.value === '') {
           new_title.value = '新的聊天'
         }
-        emit('edit', edit_data.edit_id, new_title.value)
-        ElMessage({
-          message: '修改成功！',
-          type: 'success',
-          duration: 1000
-        })
+        emit('edit', data.id, new_title.value)
       }
     }
   }
 }
+
+function is_delete() {
+  isDelete.value = !isDelete.value
+}
+function handle_active() {
+  if(!isDelete.value) {
+    emit('active', data.id)
+  }
+}
+function handle_delete() {
+  emit('delete', data.id)
+  console.log('delete', data.id)
+}
+
 </script>
 
 <template>
@@ -61,18 +71,19 @@ function handle_save() {
         edit_show = false
       }
     "
+    @click="handle_active"
   >
     <input
       placeholder="新的聊天"
       ref="input_box"
       type="text"
-      :value="edit_data.edit_title"
+      :value="data.title"
       v-show="edit_input"
       @keyup.enter="handle_save"
       @blur="handle_save"
     />
     <span v-show="!edit_input" class="history-title">
-      <slot name="title"></slot>
+      {{ data.title}}
     </span>
     <div>
       <transition name="edit">
@@ -83,17 +94,17 @@ function handle_save() {
     </div>
     <div>
       <transition name="delete">
-        <el-icon color="#939393" v-show="edit_show">
+        <el-icon color="#939393" v-show="edit_show" @click="handle_delete" @mouseenter="is_delete" @mouseleave="is_delete">
           <DeleteFilled />
         </el-icon>
       </transition>
     </div>
     <span v-show="!edit_warning" class="history-count">
-      <slot name="count"></slot>
+      共{{ data.count}}条对话
     </span>
     <span id="warning-msg" v-show="edit_warning">请小于十个字符！</span>
     <span class="history-time">
-      <slot name="time"></slot>
+      {{ data.time}}
     </span>
   </div>
 </template>
@@ -157,7 +168,7 @@ function handle_save() {
   .history-time {
     color: #a6a6a6;
     margin-right: 15px;
-    font-size: 13px;
+    font-size: 12px;
     justify-self: end;
     grid-column-start: 2;
     grid-column-end: 5;

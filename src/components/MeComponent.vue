@@ -1,5 +1,6 @@
 <script setup>
-
+import {defineProps} from "vue";
+const data = defineProps(['question', 'updateTime'])
 </script>
 
 <template>
@@ -10,10 +11,10 @@
       </div>
       <div id="chat">
         <div id="chat-content">
-          <p>如何根治青春痘</p>
+          <p>{{ data.question }}</p>
         </div>
         <div id="chat-time">
-          <span>2023/11/11 23:51:21</span>
+          <span>{{ data.updateTime }}</span>
         </div>
       </div>
     </div>

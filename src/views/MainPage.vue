@@ -1,38 +1,47 @@
 <script setup>
 import { ref, watch } from 'vue'
-import {Plus, Fold, Promotion} from '@element-plus/icons-vue'
+import { Plus, Fold, Promotion, Loading } from '@element-plus/icons-vue'
 import 'animate.css'
-import {ElMessage} from "element-plus";
+import { ElMessage } from 'element-plus'
 import HistoryComponent from '@/components/HistoryComponent.vue'
-import DocComponent from "@/components/DocComponent.vue";
-import MeComponent from "@/components/MeComponent.vue";
+import DocComponent from '@/components/DocComponent.vue'
+import MeComponent from '@/components/MeComponent.vue'
+import router from '@/router'
+import axios from 'axios'
+
+const history = ref(JSON.parse(localStorage.getItem('UserData')))
+const UserId = ref(history.value[0].usrId)
+const chat_detail = ref(null)
+
+/* 清除本地持久化 */
+localStorage.clear()
 
 const content = ref('')
 const send_icon = ref(false)
 const send_btn = ref(null)
 const regex = /^\s*$/
+const text_main = ref(null)
 
 /* 侦听textarea中是否有内容产生 */
 watch(content, async (new_content) => {
-  if (!regex.test(new_content)){
+  if (!regex.test(new_content)) {
     send_btn.value.style.backgroundColor = '#409eff'
     send_icon.value = true
-  }
-  else{
+  } else {
     send_btn.value.style.backgroundColor = 'transparent'
     send_icon.value = false
   }
 })
 
-function sendmsg(){
-  if(regex.test(content.value)){
+function sendmsg() {
+  if (regex.test(content.value)) {
     ElMessage({
-      message: 'Oops, you haven\'t filled in the blanks yet.',
+      message: "Oops, you haven't filled in the blanks yet.",
       type: 'warning',
       duration: 1800
     })
     content.value = ''
-  }else{
+  } else {
     content.value = ''
     send_btn.value.style.backgroundColor = 'transparent'
     send_icon.value = false
@@ -40,82 +49,132 @@ function sendmsg(){
 }
 
 const doctor = ref('神医')
-const history = ref([
-  {
-    title: '如何根治青春痘',
-    count: '共52条对话',
-    time: '2023/11/10 23:31:46',
-    id: 123
-  },
-  {
-    title: '痛经怎么办',
-    count: '共12条对话',
-    time: '2023/11/9 12:34:13',
-    id: 456
-  },
-  {
-    title: '眩晕症吃什么药',
-    count: '共42条对话',
-    time: '2023/11/8 15:35:01',
-    id: 789
-  },
-  {
-    title: '时常腰酸背痛怎么办',
-    count: '共11条对话',
-    time: '2023/11/1 14:15:21',
-    id: 200
-  },
-  {
-    title: '腰酸背痛的原因是什么？',
-    count: '共8条对话',
-    time: '2023/11/1 14:20:45',
-    id: 201
-  },
-  {
-    title: '如何缓解腰酸背痛的不适？',
-    count: '共5条对话',
-    time: '2023/11/1 14:22:10',
-    id: 202
-  },
-  {
-    title: '如何预防腰酸背痛？',
-    count: '共12条对话',
-    time: '2023/11/1 14:24:36',
-    id: 203
-  },
-  {
-    title: '腰酸背痛的治疗方法？',
-    count: '共9条对话',
-    time: '2023/11/1 14:27:02',
-    id: 204
-  },
-  {
-    title: '如何改善腰酸背痛？',
-    count: '共7条对话',
-    time: '2023/11/1 14:29:28',
-    id: 205
-  },
-  {
-    title: '腰酸背痛与坐姿有关？',
-    count: '共6条对话',
-    time: '2023/11/1 14:31:54',
-    id: 206
-  }
-])
+
+console.log(history.value[0])
+console.log(UserId.value)
 const activeId = ref(history.value[0].id)
+axios
+  .get(`http://10.100.236.20:8080/history/` + activeId.value, {
+    headers: { 'Content-Type': 'application/json;charset=UTF-8', Accept: '*' },
+    timeout: 30000
+  })
+  .then((res) => {
+    if (res.status === 200) {
+      console.log(res.data)
+      chat_detail.value = res.data
+      document.addEventListener('DOMContentLoaded', function() {
+        // 将容器滚动到底部
+        text_main.value.scrollTop = text_main.value.scrollHeight
+      });
+    }
+  })
 const currentChat = ref(history.value.find((item) => item.id === activeId.value))
 
 /* 处理当前选择的聊天样式 */
 function toggleActive(id) {
-  this.activeId = id
-  currentChat.value = this.history.find((item) => item.id === this.activeId)
+  activeId.value = id
+  currentChat.value = history.value.find((item) => item.id === activeId.value)
+  axios
+    .get(`http://10.100.236.20:8080/history/` + activeId.value, {
+      headers: { 'Content-Type': 'application/json;charset=UTF-8', Accept: '*' },
+      timeout: 30000
+    })
+    .then((res) => {
+      if (res.status === 200) {
+        chat_detail.value = res.data
+        document.addEventListener('DOMContentLoaded', function() {
+          // 将容器滚动到底部
+          text_main.value.scrollTop = text_main.value.scrollHeight
+        });
+      }
+    })
 }
 
 /* 处理标题更改事件 */
 function TitleChange(id, new_title) {
   history.value.find((item) => item.id === id).title = new_title
+  let tmp_data = JSON.stringify({
+    usrId: UserId.value,
+    title: new_title,
+    id: id
+  })
+  axios
+    .put('http://10.100.236.20:8080/update', tmp_data, {
+      headers: { 'Content-Type': 'application/json;charset=UTF-8', Accept: '*' },
+      timeout: 30000
+    })
+    .then((res) => {
+      if (res.status === 200) {
+        ElMessage({
+          message: '修改成功！',
+          type: 'success',
+          duration: 1000
+        })
+      } else {
+        ElMessage({
+          message: '修改失败！',
+          type: 'error',
+          duration: 1000
+        })
+      }
+    })
 }
 
+function HandleDelete(id) {
+  if (history.value.length === 1) {
+    ElMessage({
+      message: '至少保留一个聊天！',
+      type: 'warning',
+      duration: 1000
+    })
+  } else {
+    axios
+      .post('http://10.100.236.20:8080/delete/' + id, {
+        headers: { 'Content-Type': 'application/json;charset=UTF-8', Accept: '*' },
+        timeout: 30000
+      })
+      .then((res) => {
+        if (res.status === 200) {
+          let index = history.value.findIndex((item) => item.id === id)
+          if (activeId.value === id) {
+            toggleActive(history.value[index + 1].id)
+          }
+          history.value.splice(index, 1)
+          ElMessage({
+            message: '删除成功！',
+            type: 'success',
+            duration: 1000
+          })
+        } else {
+          ElMessage({
+            message: '删除失败！',
+            type: 'error',
+            duration: 1000
+          })
+        }
+      })
+  }
+}
+
+function handleAdd() {
+  axios
+    .post('http://10.100.236.20:8080/session/' + UserId.value, {
+      headers: { 'Content-Type': 'application/json;charset=UTF-8', Accept: '*' },
+      timeout: 30000
+    })
+    .then((res) => {
+      if (res.status === 200) {
+        ElMessage({
+          message: '添加成功！',
+          type: 'success',
+          duration: 1000
+        })
+        history.value = res.data.data
+      }
+    })
+}
+
+const isLoading = ref(false)
 </script>
 
 <template>
@@ -144,30 +203,32 @@ function TitleChange(id, new_title) {
           v-for="item in history"
           :key="item.id"
           :style="{ borderColor: activeId === item.id ? '#1d93ab' : 'transparent' }"
-          :edit_id = "item.id"
-          :edit_title = "item.title"
+          :id="item.id"
+          :title="item.title"
+          :count="item.count"
+          :time="item.time.replace('T', ' ')"
           @edit="TitleChange"
-          @click="toggleActive(item.id)"
+          @delete="HandleDelete"
+          @active="toggleActive"
         >
-          <template v-slot:title>{{ item.title }}</template>
-          <template v-slot:count>{{ item.count }}</template>
-          <template v-slot:time>{{ item.time }}</template>
         </HistoryComponent>
       </div>
       <div class="left-nav footer">
-        <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="Logging Out"
-            placement="top-start"
-        >
-            <button id="login-out">
-              <el-icon size="large">
-                <Fold />
-              </el-icon>
-            </button>
+        <el-tooltip class="box-item" effect="dark" content="Logging Out" placement="top-start">
+          <button
+            id="login-out"
+            @click="
+              () => {
+                router.back()
+              }
+            "
+          >
+            <el-icon size="large">
+              <Fold />
+            </el-icon>
+          </button>
         </el-tooltip>
-        <button id="add-new-chat">
+        <button id="add-new-chat" @click="handleAdd">
           <el-icon size="large">
             <Plus />
           </el-icon>
@@ -179,7 +240,7 @@ function TitleChange(id, new_title) {
       <div class="right-main header">
         <div class="right-main header title">
           <span style="font-size: 30px; font-weight: bold">{{ currentChat.title }}</span>
-          <span style="font-size: 18px">{{ currentChat.count }}</span>
+          <span style="font-size: 18px">共{{ currentChat.count }}条对话</span>
         </div>
         <div class="right-main header change-button">
           <el-radio-group v-model="doctor" size="default">
@@ -188,38 +249,48 @@ function TitleChange(id, new_title) {
           </el-radio-group>
         </div>
       </div>
-      <div class="right-main main">
-        <DocComponent></DocComponent>
-        <MeComponent></MeComponent>
-        <DocComponent></DocComponent>
-        <MeComponent></MeComponent>
-        <DocComponent></DocComponent>
-        <MeComponent></MeComponent>
-        <DocComponent></DocComponent>
-        <MeComponent></MeComponent>
+      <div ref="text_main" class="right-main main">
+        <div class="right-main main chat" v-for="item in chat_detail" :key="item.id">
+          <MeComponent
+            :question="item.question"
+            :time="item.updateTime.replace('T', ' ')"
+          ></MeComponent>
+          <DocComponent
+            :doc="item.doctor"
+            :answer="item.answer"
+            :time="item.updateTime.replace('T', ' ')"
+          ></DocComponent>
+        </div>
       </div>
       <div class="right-main footer">
         <div class="right-main footer input">
           <div class="right-main footer input text-area">
-            <textarea v-model="content" @keyup.enter="sendmsg" autofocus placeholder="Send a message..." rows="1"></textarea>
-            <el-tooltip
-                class="box-item"
-                effect="dark"
-                content="Send Message"
-                placement="top"
-            >
+            <textarea
+              v-model="content"
+              @keyup.enter="sendmsg"
+              autofocus
+              placeholder="Send a message..."
+              rows="1"
+            ></textarea>
+            <el-tooltip class="box-item" effect="dark" content="Send Message" placement="top">
               <button ref="send_btn" :disabled="!send_icon" id="send-msg" @click="sendmsg">
-                <el-icon v-show="!send_icon" color="#dedee5" size=25>
+                <el-icon v-show="!send_icon && !isLoading" color="#dedee5" size="25">
                   <Promotion />
                 </el-icon>
-                <el-icon v-show="send_icon" color="white" size=25>
+                <el-icon v-show="send_icon && !isLoading" color="white" size="25">
                   <Promotion />
+                </el-icon>
+                <el-icon class="is-loading" color="#dedee5" size="25" v-show="isLoading">
+                  <Loading />
                 </el-icon>
               </button>
             </el-tooltip>
           </div>
         </div>
-        <span id="remind" style="color: #a6a6a6">Medical T5 can make mistakes, please consult a medical professional before proceeding with the relevant treatment.</span>
+        <span id="remind" style="color: #a6a6a6"
+          >Medical T5 can make mistakes, please consult a medical professional before proceeding
+          with the relevant treatment.</span
+        >
       </div>
     </div>
   </div>
@@ -283,13 +354,16 @@ function TitleChange(id, new_title) {
     flex-grow: 8;
     overflow: auto;
   }
+
   .main::-webkit-scrollbar {
     width: 3px; /* 设置滚动条宽度 */
   }
+
   .main::-webkit-scrollbar-track {
     background-color: transparent; /* 设置滚动条背景色 */
     border-radius: 20px;
   }
+
   .main::-webkit-scrollbar-thumb {
     background-color: #888; /* 设置滚动条滑块颜色 */
     border-radius: 20px;
@@ -365,6 +439,7 @@ function TitleChange(id, new_title) {
     flex-direction: column;
     flex-grow: 4;
     flex-basis: 0;
+    background-color: white;
 
     .header {
       display: flex;
@@ -399,6 +474,12 @@ function TitleChange(id, new_title) {
       overflow: auto;
       align-items: center;
       justify-content: center;
+
+      .chat {
+        margin: 90px 0;
+        padding: 0;
+        background-color: transparent;
+      }
     }
 
     .footer {
@@ -408,6 +489,7 @@ function TitleChange(id, new_title) {
       justify-content: flex-end;
       flex-basis: 0;
       flex-grow: 1.3;
+
       .input {
         background-color: transparent;
         flex-direction: row;
@@ -417,7 +499,8 @@ function TitleChange(id, new_title) {
         width: 100%;
         align-items: flex-end;
         justify-content: center;
-        .text-area{
+
+        .text-area {
           padding-left: 18px;
           padding-right: 18px;
           flex-direction: row;
@@ -432,36 +515,43 @@ function TitleChange(id, new_title) {
           transition-duration: 0.4s;
           border: 1px solid rgba(242, 242, 242, 0.4);
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-          textarea{
+
+          textarea {
             margin-right: 20px;
             flex-basis: 0;
             flex-grow: 20;
             width: 95%;
             height: auto;
-            font-family: "CustomFont", Arial, sans-serif;
+            font-family: 'CustomFont', Arial, sans-serif;
             border-color: transparent;
             resize: none;
             font-size: 17px;
           }
+
           textarea:focus {
             border-color: transparent;
             outline: none;
           }
+
           textarea::-webkit-scrollbar {
             width: 3px; /* 设置滚动条宽度 */
           }
+
           textarea::-webkit-scrollbar-track {
             background-color: transparent; /* 设置滚动条背景色 */
             border-radius: 20px;
           }
+
           textarea::-webkit-scrollbar-thumb {
             background-color: #888; /* 设置滚动条滑块颜色 */
             border-radius: 20px;
           }
+
           textarea::-webkit-scrollbar-thumb:active {
             background-color: #666;
           }
-          #send-msg{
+
+          #send-msg {
             flex-basis: 0;
             flex-grow: 1;
             width: 35px;
@@ -471,13 +561,15 @@ function TitleChange(id, new_title) {
             background-color: transparent;
             transition: ease-in-out 0.2s;
           }
-          #send-msg:active{
+
+          #send-msg:active {
             background-color: #8f9eff;
             transition: ease-in-out 0.2s;
           }
         }
       }
-      #remind{
+
+      #remind {
         display: flex;
         flex-direction: row;
         align-items: flex-end;

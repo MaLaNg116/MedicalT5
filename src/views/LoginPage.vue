@@ -1,9 +1,11 @@
 <script setup>
+  localStorage.clear()
   import{ref} from "vue";
   import { ElMessage } from 'element-plus'
   import axios from "axios"
-  import {userInfo} from "@/stores/userInfo";
+  import {useRouter} from "vue-router";
 
+  const router = useRouter()
   let right_panel_active = ref(true);
   const container_from = ref(null)
   const container =ref(null)
@@ -12,7 +14,6 @@
   const log_username = ref('')
   const log_password = ref('')
   const loading = ref(false)
-  const usersInfo = userInfo()
   
   function re_judge(){
     if(re_password.value == '' ||  re_username.value == ''){
@@ -88,13 +89,11 @@
             timeout: 30000
           }).then(res => {
             console.log(res.data)
-            const data = res.data
-            const fetchData = () => {
-              usersInfo.fetchData(data);
-            };
-            console.log(usersInfo.$state.data)
-            fetchData()
+            const data = res.data.data
+            localStorage.setItem('isLogin','true')
+            localStorage.setItem('UserData',JSON.stringify(data))
             loading.value = false
+            router.push('/chat')
           }).catch(err => {
             console.log(err)
           })

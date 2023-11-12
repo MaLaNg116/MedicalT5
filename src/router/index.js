@@ -10,8 +10,15 @@ const router = createRouter({
     },
     {
       path: '/chat',
-      name: 'Home',
-      component: () => import('../views/MainPage.vue')
+      name: 'Chat',
+      component: () => import('../views/MainPage.vue'),
+      beforeEnter: (to, from, next) => {
+        if (to.name !== 'Login' && localStorage.getItem('isLogin')===null) {
+          next({ name: 'Login' })
+        } else {
+          next()
+        }
+      }
     }
   ]
 })
