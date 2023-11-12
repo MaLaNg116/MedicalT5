@@ -2,7 +2,6 @@
 import { ref, defineProps } from 'vue'
 import { Edit, DeleteFilled } from '@element-plus/icons-vue'
 import 'animate.css'
-import {ElMessage} from "element-plus";
 
 const edit_show = ref(false)
 const isDelete = ref(false)
@@ -46,16 +45,17 @@ function handle_save() {
 function is_delete() {
   isDelete.value = !isDelete.value
 }
+
 function handle_active() {
-  if(!isDelete.value) {
+  if (!isDelete.value) {
     emit('active', data.id)
   }
 }
+
 function handle_delete() {
   emit('delete', data.id)
   console.log('delete', data.id)
 }
-
 </script>
 
 <template>
@@ -83,7 +83,7 @@ function handle_delete() {
       @blur="handle_save"
     />
     <span v-show="!edit_input" class="history-title">
-      {{ data.title}}
+      {{ data.title }}
     </span>
     <div>
       <transition name="edit">
@@ -94,17 +94,21 @@ function handle_delete() {
     </div>
     <div>
       <transition name="delete">
-        <el-icon color="#939393" v-show="edit_show" @click="handle_delete" @mouseenter="is_delete" @mouseleave="is_delete">
+        <el-icon
+          color="#939393"
+          v-show="edit_show"
+          @click="handle_delete"
+          @mouseenter="is_delete"
+          @mouseleave="is_delete"
+        >
           <DeleteFilled />
         </el-icon>
       </transition>
     </div>
-    <span v-show="!edit_warning" class="history-count">
-      共{{ data.count}}条对话
-    </span>
+    <span v-show="!edit_warning" class="history-count"> 共{{ data.count }}条对话 </span>
     <span id="warning-msg" v-show="edit_warning">请小于十个字符！</span>
     <span class="history-time">
-      {{ data.time}}
+      {{ data.time }}
     </span>
   </div>
 </template>

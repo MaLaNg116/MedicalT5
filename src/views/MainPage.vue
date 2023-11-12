@@ -9,6 +9,7 @@ import MeComponent from '@/components/MeComponent.vue'
 import router from '@/router'
 import axios from 'axios'
 
+const URL = 'http://10.100.236.20:8080'
 const history = ref(JSON.parse(localStorage.getItem('UserData')))
 const UserId = ref(history.value[0].usrId)
 const chat_detail = ref(null)
@@ -54,7 +55,7 @@ console.log(history.value[0])
 console.log(UserId.value)
 const activeId = ref(history.value[0].id)
 axios
-  .get(`http://10.100.236.20:8080/history/` + activeId.value, {
+  .get(URL + `/history/` + activeId.value, {
     headers: { 'Content-Type': 'application/json;charset=UTF-8', Accept: '*' },
     timeout: 30000
   })
@@ -62,10 +63,10 @@ axios
     if (res.status === 200) {
       console.log(res.data)
       chat_detail.value = res.data
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('DOMContentLoaded', function () {
         // 将容器滚动到底部
         text_main.value.scrollTop = text_main.value.scrollHeight
-      });
+      })
     }
   })
 const currentChat = ref(history.value.find((item) => item.id === activeId.value))
@@ -75,17 +76,17 @@ function toggleActive(id) {
   activeId.value = id
   currentChat.value = history.value.find((item) => item.id === activeId.value)
   axios
-    .get(`http://10.100.236.20:8080/history/` + activeId.value, {
+    .get(URL + `/history/` + activeId.value, {
       headers: { 'Content-Type': 'application/json;charset=UTF-8', Accept: '*' },
       timeout: 30000
     })
     .then((res) => {
       if (res.status === 200) {
         chat_detail.value = res.data
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
           // 将容器滚动到底部
           text_main.value.scrollTop = text_main.value.scrollHeight
-        });
+        })
       }
     })
 }
@@ -99,7 +100,7 @@ function TitleChange(id, new_title) {
     id: id
   })
   axios
-    .put('http://10.100.236.20:8080/update', tmp_data, {
+    .put(URL + '/update', tmp_data, {
       headers: { 'Content-Type': 'application/json;charset=UTF-8', Accept: '*' },
       timeout: 30000
     })
@@ -129,7 +130,7 @@ function HandleDelete(id) {
     })
   } else {
     axios
-      .post('http://10.100.236.20:8080/delete/' + id, {
+      .post(URL + '/delete/' + id, {
         headers: { 'Content-Type': 'application/json;charset=UTF-8', Accept: '*' },
         timeout: 30000
       })
@@ -158,7 +159,7 @@ function HandleDelete(id) {
 
 function handleAdd() {
   axios
-    .post('http://10.100.236.20:8080/session/' + UserId.value, {
+    .post(URL + '/session/' + UserId.value, {
       headers: { 'Content-Type': 'application/json;charset=UTF-8', Accept: '*' },
       timeout: 30000
     })
