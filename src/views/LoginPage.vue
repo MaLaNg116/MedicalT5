@@ -1,5 +1,4 @@
 <script setup>
-localStorage.clear()
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'

@@ -6,7 +6,14 @@ const router = createRouter({
     {
       path: '/',
       name: 'Login',
-      component: () => import('../views/LoginPage.vue')
+      component: () => import('../views/LoginPage.vue'),
+      beforeEnter: (to, from, next) => {
+        if (to.name !== 'Chat' && localStorage.getItem('isLogin')!==null) {
+          next({ name: 'Chat' })
+        } else {
+          next()
+        }
+      }
     },
     {
       path: '/chat',

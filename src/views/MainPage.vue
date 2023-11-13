@@ -14,9 +14,6 @@ const history = ref(JSON.parse(localStorage.getItem('UserData')))
 const UserId = ref(history.value[0].usrId)
 const chat_detail = ref(null)
 
-/* 清除本地持久化 */
-localStorage.clear()
-
 const content = ref('')
 const send_icon = ref(false)
 const send_btn = ref(null)
@@ -220,6 +217,8 @@ const isLoading = ref(false)
             id="login-out"
             @click="
               () => {
+                /* 清除本地持久化 */
+                localStorage.clear()
                 router.back()
               }
             "
