@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 
-const URL = 'http://10.100.236.20:8080'
+const URL = 'http://10.100.136.114:8080'
 const router = useRouter()
 let right_panel_active = ref(true)
 const container_from = ref(null)
@@ -92,7 +92,7 @@ function log_judge() {
               console.log(res.data)
               const data = res.data.data
               localStorage.setItem('isLogin', 'true')
-              localStorage.setItem('UserData', JSON.stringify(data))
+              localStorage.setItem('UserId', log_username.value)
               loading.value = false
               router.push('/chat')
             })

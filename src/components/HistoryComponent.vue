@@ -54,7 +54,6 @@ function handle_active() {
 
 function handle_delete() {
   emit('delete', data.id)
-  console.log('delete', data.id)
 }
 </script>
 

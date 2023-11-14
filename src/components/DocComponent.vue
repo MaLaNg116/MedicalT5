@@ -1,13 +1,9 @@
 <script setup>
 import { defineProps, ref } from 'vue'
 
-const data = defineProps(['doctor', 'answer', 'updateTime'])
+const data = defineProps(['doc', 'answer', 'time'])
 const isGood = ref(true)
-if (data.doctor === 1) {
-  isGood.value = true
-} else {
-  isGood.value = true
-}
+isGood.value = parseInt(data.doc) === 1;
 </script>
 
 <template>
@@ -22,7 +18,7 @@ if (data.doctor === 1) {
           <p>{{ data.answer }}</p>
         </div>
         <div id="chat-time">
-          <span>{{ data.updateTime }}</span>
+          <span>{{ data.time }}</span>
         </div>
       </div>
     </div>
@@ -31,12 +27,14 @@ if (data.doctor === 1) {
 
 <style scoped lang="less">
 .bkg {
+  flex-grow: 1;
   background-color: rgba(255, 255, 255, 0.8);
   padding: 20px 150px;
   font-size: 30px;
 
   .detail {
     padding: 0;
+    margin-right: 40px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;

@@ -1,7 +1,7 @@
 <script setup>
 import { defineProps } from 'vue'
 
-const data = defineProps(['question', 'updateTime'])
+const data = defineProps(['question', 'time'])
 </script>
 
 <template>
@@ -15,7 +15,7 @@ const data = defineProps(['question', 'updateTime'])
           <p>{{ data.question }}</p>
         </div>
         <div id="chat-time">
-          <span>{{ data.updateTime }}</span>
+          <span>{{ data.time }}</span>
         </div>
       </div>
     </div>
@@ -24,11 +24,13 @@ const data = defineProps(['question', 'updateTime'])
 
 <style scoped lang="less">
 .bkg {
+  flex-grow: 1;
   background-color: rgba(255, 255, 255, 0.8);
   padding: 20px 150px;
   font-size: 30px;
 
   .detail {
+    margin-left: 0;
     padding: 0;
     display: flex;
     flex-direction: row-reverse;
